@@ -22,15 +22,43 @@ app.get('/', (req, res) => {
     });
 })
 
+
+let refreshTokens = [];
+
+app.post('/api/refresh',(req,res)=>{
+    const refreshToken = req.body.token;
+    if(!refreshToken) return res.sendStatus(401).json({message:'No token'});
+    if(refreshTokens.indexOf(refreshToken) === -1) return res.sendStatus(403).json({message:'Invalid token'});
+    jwt.verify(refreshToken,'refreshSecret',(err,user)=>{
+        if(err) return res.sendStatus(403).json({message:'Invalid token'});
+        refreshTokens.splice(refreshTokens.indexOf(refreshToken),1);
+        const accessToken = generateAccesToken(user);
+        const refreshToken = genereateRefreshToken(user);
+        res.json({accessToken});
+    })
+})
+
+const genereateRefreshToken = (user)=>{
+    const refreshToken  = jwt.sign(user, 'refreshSecret', {expiresIn: '7d'});
+    return refreshToken;
+}
+
+const generateAccesToken = (user) => {
+    const accessToken = jwt.sign(user, 'accessSecret', {expiresIn: '15m'});
+    return accessToken;
+}
+
 app.post("/api/login", (req, res) => {
     console.log(req.body);
     const { name, password } = req?.body;
     const findUser = user.find(user => user.name === name && user.password === password);
     if (!findUser) return res.status(400).send('Invalid Credentials');
-    const token = jwt.sign({ id: findUser.id, code: "fuck yourself asslhole" }, 'secret', { expiresIn: '1h' });
+    const accessToken = generateAccesToken(findUser);
+    const refreshToken = genereateRefreshToken(findUser);
     console.log(findUser);
     res.json({
-        token: token
+        accessToken: accessToken,
+        refreshToken: refreshToken
     });
 })
 
