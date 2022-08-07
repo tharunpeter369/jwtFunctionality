@@ -39,7 +39,7 @@ app.post('/api/refresh',(req,res)=>{
 })
 
 const genereateRefreshToken = (user)=>{
-    const refreshToken  = jwt.sign(user, 'refreshSecret', {expiresIn: '7d'});
+    const refreshToken  = jwt.sign(user, 'refreshSecret', {expiresIn: '2m'});
     return refreshToken;
 }
 
@@ -63,13 +63,17 @@ app.post("/api/login", (req, res) => {
 })
 
 const verify = (req, res, next) => {
-    const token = req.header('bearer').split(' ')[1];
+    // console.log(req.header,"its my token");
+    console.log(req.header('bearer'));
+    const token = req.header('bearer');
+    // const token = req.header('bearer').split(' ')[1];
     if (!token) return res.status(401).send('Access Denied');
     try {
-        const verified = jwt.verify(token, 'secret');
+        const verified = jwt.verify(token, 'accessSecret');
         const findUser = user.find(user => user.id === verified.id);
         if (!findUser) return res.status(400).send('Invalid Credentials');
         req.user = verified;
+        console.log(req.user,"😉");
         next();
     } catch (err) {
         res.status(400).send('Invalid Token');
