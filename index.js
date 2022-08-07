@@ -67,9 +67,7 @@ const verify = (req, res, next) => {
     if (!token) return res.status(401).send('Access Denied');
     try {
         const verified = jwt.verify(token, 'secret');
-        console.log(verified, "ffffffffffffffff");
         const findUser = user.find(user => user.id === verified.id);
-        console.log(findUser, "yoyo honey singh");
         if (!findUser) return res.status(400).send('Invalid Credentials');
         req.user = verified;
         next();
