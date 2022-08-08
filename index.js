@@ -1,7 +1,11 @@
 const express = require('express');
 const app = express();
 const jwt = require('jsonwebtoken');
-app.use(express.json())
+const { MongoClient } = require('mongodb');
+// var cookieParser = require('cookie-parser')
+var LocalStorage = require('node-localstorage').LocalStorage;
+localStorage = new LocalStorage('./scratch');
+
 
 const user = [
     {
@@ -16,6 +20,12 @@ const user = [
     }
 ]
 
+// app.use(cookieParser())
+
+// const refreshTokens = localStorage.setItem('refreshTokens', ["fuck you"]);
+
+// console.log(localStorage.getItem('refreshTokens'));
+
 app.get('/', (req, res) => {
     res.json({
         message: 'Hello World!'
@@ -23,18 +33,21 @@ app.get('/', (req, res) => {
 })
 
 
-let refreshTokens = [];
-
 app.post('/api/refresh',(req,res)=>{
+    console.log(req.body,"should be refresh token");
     const refreshToken = req.body.token;
-    if(!refreshToken) return res.sendStatus(401).json({message:'No token'});
+    if(!refreshToken){
+        return res.json("you are fucked")
+    }
+    console.log(refreshTokens,"😅");
     if(refreshTokens.indexOf(refreshToken) === -1) return res.sendStatus(403).json({message:'Invalid token'});
     jwt.verify(refreshToken,'refreshSecret',(err,user)=>{
         if(err) return res.sendStatus(403).json({message:'Invalid token'});
         refreshTokens.splice(refreshTokens.indexOf(refreshToken),1);
         const accessToken = generateAccesToken(user);
         const refreshToken = genereateRefreshToken(user);
-        res.json({accessToken});
+        refreshToken.push(refreshToken);
+        res.status(200).json({accessToken,refreshToken});
     })
 })
 
@@ -49,13 +62,15 @@ const generateAccesToken = (user) => {
 }
 
 app.post("/api/login", (req, res) => {
-    console.log(req.body);
+    console.log(req.body,"😅😇😅😇😅😇😅😇😅😇😅😇😅😇");
     const { name, password } = req?.body;
     const findUser = user.find(user => user.name === name && user.password === password);
     if (!findUser) return res.status(400).send('Invalid Credentials');
     const accessToken = generateAccesToken(findUser);
     const refreshToken = genereateRefreshToken(findUser);
-    console.log(findUser);
+    console.log(refreshToken,"😅😇😅😇😅😇😅😇😅😇😅😇😅😇");
+    refreshTokens.push(refreshToken);
+    console.log(refreshTokens);
     res.json({
         accessToken: accessToken,
         refreshToken: refreshToken
