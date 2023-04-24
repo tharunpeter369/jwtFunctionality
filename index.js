@@ -52,12 +52,12 @@ app.post('/api/refresh',(req,res)=>{
 })
 
 const genereateRefreshToken = (user)=>{
-    const refreshToken  = jwt.sign(user, 'refreshSecret', {expiresIn: '2m'});
+    const refreshToken  = jwt.sign(user, 'refreshSecret', {expiresIn: '20m'});
     return refreshToken;
 }
 
 const generateAccesToken = (user) => {
-    const accessToken = jwt.sign(user, 'accessSecret', {expiresIn: '15m'});
+    const accessToken = jwt.sign(user, 'accessSecret', {expiresIn: '5m'});
     return accessToken;
 }
 
